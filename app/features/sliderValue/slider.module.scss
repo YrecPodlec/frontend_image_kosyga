@@ -1,0 +1,16 @@
+.slider{
+  padding: 1rem;
+  display: flex;
+  gap: .5rem;
+  flex-direction: column;
+  border: 2px dashed black;
+  width: fit-content;
+  @media (max-width: 768px) {
+    padding: .5rem;
+    width: 100%;
+  }
+}
+.fieldRow{
+  display: flex;
+  width: 100%;
+}
