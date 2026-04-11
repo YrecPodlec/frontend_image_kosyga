@@ -4,16 +4,17 @@ import styles from './main.module.scss'
 import SliderValue from "@/app/features/sliderValue/sliderValue";
 const MainWindow = () => {
     const [params, setParams] = React.useState({
-        threshold1: 5,
-        threshold2: 5,
-        blur: 10,
+        threshold1: 34,
+        threshold2: 61,
+        blur: 15,
         thickness: 4,
-        minArea: 500,
+        minArea: 0,
         color: '#1afffb',
         mode: "contours",
         file: null as File | null,
     })
     const [previewUrl, setPreviewUrl] = React.useState<string | null>(null)
+    const [resultImage, setResultImage] = React.useState<string | null>(null)
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
@@ -21,6 +22,38 @@ const MainWindow = () => {
         if (previewUrl) URL.revokeObjectURL(previewUrl)
         setPreviewUrl(URL.createObjectURL(file))
     }
+
+    const handleSubmit = async () => {
+        if (!params.file) return;
+
+        const formData = new FormData();
+        formData.append('file', params.file);
+        formData.append('threshold1', params.threshold1.toString());
+        formData.append('threshold2', params.threshold2.toString());
+        formData.append('blur', params.blur.toString());
+        formData.append('thickness', params.thickness.toString());
+        formData.append('min_area', params.minArea.toString());
+        formData.append('color', params.color);
+        formData.append('mode', params.mode);
+
+        const response = await fetch('http://localhost:8000/process', {
+            method: 'POST',
+            body: formData,
+
+        });
+        console.log(response.status);
+        console.log(params.mode + "PARAMS");
+
+        if (!response.ok) {
+            console.error("Сервер вернул ошибку:", response.status);
+            alert("Ошибка обработки изображения");
+            return;
+        }
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        setResultImage(url);
+    };
+
     return (
         <section className={styles.mainSection}>
             <div className="window">
@@ -35,7 +68,7 @@ const MainWindow = () => {
                 <div className="window-body">
                     <div className={styles.imageBox}>
                         <div className={styles.ImageContainer}>
-                            <div className={styles.imageSelf} style={{ backgroundImage: `url(${previewUrl})` }} />
+                            <div className={styles.imageSelf} style={{ backgroundImage: `url(${previewUrl})` }}/>
                             <div>
                                 <h3>ЗАГРУЗИТЬ ИЗОБРАЖЕНИЕ</h3>
                                 <input
@@ -46,7 +79,11 @@ const MainWindow = () => {
                             </div>
                         </div>
                         <div className={styles.ImageContainer}>
-                            <div className={styles.imageSelf}>IMG2</div>
+                            <div className={styles.imageSelf}>
+                                {resultImage && (
+                                    <img src={resultImage} />
+                                )}
+                            </div>
                             <div>
                                 <h3>ОБРАБОТАННОЕ</h3>
                             </div>
@@ -56,14 +93,14 @@ const MainWindow = () => {
                         <div className={styles.params}>
                             <SliderValue
                                 title={'Нижний порог'}
-                                min={0}
-                                max={100}
+                                min={1}
+                                max={255}
                                 value={params.threshold1}
                                 onChange={(threshold1) => setParams(prev => ({ ...prev, threshold1 }))}/>
                             <SliderValue
                                 title={'Высокий порог'}
-                                min={100}
-                                max={300}
+                                min={1}
+                                max={255}
                                 value={params.threshold2}
                                 onChange={(threshold2) => setParams(prev => ({ ...prev, threshold2 }))}/>
                             <SliderValue
@@ -81,7 +118,7 @@ const MainWindow = () => {
                             <SliderValue
                                 title={'Минимальный размер'}
                                 min={0}
-                                max={5000}
+                                max={1000}
                                 value={params.minArea}
                                 onChange={(minArea) => setParams(prev => ({ ...prev, minArea }))}/>
                         </div>
@@ -93,6 +130,7 @@ const MainWindow = () => {
                                     <option value="contours">Контуры</option>
                                     <option value="edges">Только границы</option>
                                     <option value="grayscale">Ч/Б изображение</option>
+                                    <option value="binary">БИНАРНЫЙ</option>
                                 </select>
                             </div>
                             <div className={styles.dropDown}>
@@ -101,7 +139,7 @@ const MainWindow = () => {
                                 onChange={(e) => setParams(prev => ({ ...prev, color: e.target.value }))}/>
                             </div>
                         </div>
-                        <button onClick={() => console.log(params)}>ОТПРАВИТЬ НА ОБРАБОТКУ</button>
+                        <button onClick={handleSubmit}>ОТПРАВИТЬ НА ОБРАБОТКУ</button>
                     </div>
                 </div>
                 <div className="status-bar">
