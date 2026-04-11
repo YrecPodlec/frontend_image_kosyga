@@ -36,7 +36,7 @@ const MainWindow = () => {
         formData.append('color', params.color);
         formData.append('mode', params.mode);
 
-        const response = await fetch('http://localhost:8000/process', {
+        const response = await fetch('https://fast-api-image-kosyga.vercel.app/process', {
             method: 'POST',
             body: formData,
 
