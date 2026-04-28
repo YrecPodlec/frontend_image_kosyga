@@ -22,7 +22,57 @@ const MainWindow = () => {
         if (previewUrl) URL.revokeObjectURL(previewUrl)
         setPreviewUrl(URL.createObjectURL(file))
     }
+    const handleDownload = async () => {
+        if (!params.file) return;
 
+        const formData = new FormData();
+        formData.append('file', params.file);
+        formData.append('threshold1', params.threshold1.toString());
+        formData.append('threshold2', params.threshold2.toString());
+        formData.append('blur', params.blur.toString());
+        formData.append('thickness', params.thickness.toString());
+        formData.append('min_area', params.minArea.toString());
+        formData.append('color', params.color);
+        formData.append('mode', params.mode);
+
+        const response = await fetch('https://fast-api-image-kosyga.vercel.app/download', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            alert("Ошибка скачивания");
+            return;
+        }
+
+        const blob = await response.blob();
+
+        const url = window.URL.createObjectURL(blob);
+
+        const disposition = response.headers.get('content-disposition');
+
+        let filename = 'processed.png';
+
+        if (disposition) {
+            const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/);
+            const normalMatch = disposition.match(/filename="?([^"]+)"?/);
+
+            if (utf8Match?.[1]) {
+                filename = decodeURIComponent(utf8Match[1]);
+            } else if (normalMatch?.[1]) {
+                filename = normalMatch[1];
+            }
+        }
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        URL.revokeObjectURL(url);
+    };
     const handleSubmit = async () => {
         if (!params.file) return;
 
@@ -36,7 +86,7 @@ const MainWindow = () => {
         formData.append('color', params.color);
         formData.append('mode', params.mode);
 
-        const response = await fetch('https://fast-api-image-kosyga.vercel.app/process', {
+        const response = await fetch('http://127.0.0.1:8000/process', {
             method: 'POST',
             body: formData,
 
@@ -75,7 +125,12 @@ const MainWindow = () => {
                                     type="file"
                                     accept="image/jpeg,image/png,image/webp,image/gif"
                                     onChange={handleFileChange}
+                                    id="fileInput"
+                                    style={{ display: 'none' }}
                                 />
+                                <button onClick={() => document.getElementById('fileInput')?.click()}>
+                                    ВЫБРАТЬ ФАЙЛ
+                                </button>
                             </div>
                         </div>
                         <div className={styles.ImageContainer}>
@@ -86,6 +141,9 @@ const MainWindow = () => {
                             </div>
                             <div>
                                 <h3>ОБРАБОТАННОЕ</h3>
+                                <button onClick={handleDownload} disabled={!resultImage}>
+                                    СКАЧАТЬ
+                                </button>
                             </div>
                         </div>
                     </div>

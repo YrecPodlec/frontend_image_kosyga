@@ -3,6 +3,7 @@
   width: 100%;
   box-sizing: border-box;
   display: flex;
+
 }
 
 .imageBox {
@@ -11,6 +12,13 @@
   justify-content: center;
   flex: 1;
   margin: 1rem;
+  button{
+    margin: 0 auto;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 1rem;
+    font-weight: bold;
+  }
   @media (max-width: 768px) {
     flex-direction: column;
   }
