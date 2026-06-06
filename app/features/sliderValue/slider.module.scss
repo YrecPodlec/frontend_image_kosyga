@@ -34,12 +34,16 @@
   border-radius: 6px;
   text-align: center;
   transform: translateX(-50%);
-  width: 24rem;
   opacity: 0;
-  transition: opacity 0.3s ease-in-out .5ms;
+  height: 1px;
+  width: 1px;
+  transition: all 0.3s ease-in-out .5ms;
+  overflow: hidden;
   z-index: 999;
 }
 .imgBox img:hover + .hoverText {
   opacity: 1;
+  height: fit-content;
+  width: 24rem;
   visibility: visible;
 }
